@@ -44,7 +44,7 @@ if uploaded_files:
         db = FAISS.from_documents(split_docs, embeddings)
 
     st.success(f"Đã xử lý {len(uploaded_files)} tài liệu PDF!")
-    query = st.text_input("Nhập câu hỏi của bạn:")
+    # query = st.text_input("Nhập câu hỏi của bạn:")
 
     prompt_template = """
        Bạn là một trợ lý AI có nhiệm vụ trả lời câu hỏi dựa trên tài liệu được cung cấp.
@@ -60,7 +60,20 @@ if uploaded_files:
        Trả lời:
        """
     prompt = PromptTemplate(template=prompt_template, input_variables=["context", "question"])
-    if query:
+    if "messages" not in st.session_state:
+        st.session_state.messages = []
+
+    if st.button("🗑 Xóa hội thoại"):
+        st.session_state.messages = []
+        st.experimental_rerun()
+        
+    for msg in st.session_state.messages:
+        with st.chat_message(msg["role"]):
+            st.markdown(msg["content"])
+    if query:= st.chat_input("Nhập câu hỏi của bạn..."):
+        st.session_state.messages.append({"role": "user", "content": query})
+        with st.chat_message("user"):
+            st.markdown(query)
         with st.spinner("Đang tìm câu trả lời..."):
             docs = db.similarity_search(query, k=3)
             context = "\n\n".join([doc.page_content for doc in docs])
@@ -70,10 +83,19 @@ if uploaded_files:
             container = st.empty()
             text = ""
             llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0,streaming=True)
-            for chunk in llm.stream(final_prompt):
-                if chunk.content:
-                    text += chunk.content
-                    container.markdown(text)
+            # for chunk in llm.stream(final_prompt):
+            #     if chunk.content:
+            #         text += chunk.content
+            #         container.markdown(text)
+            answer = ""
+            with st.chat_message("assistant"):
+                container = st.empty()
+                for chunk in llm.stream(final_prompt):
+                    if chunk.content:
+                        answer += chunk.content
+                        container.markdown(answer)
+
+            st.session_state.messages.append({"role": "assistant", "content": answer})
 
             with st.expander("Các đoạn văn bản tham chiếu"):
                 for i, doc in enumerate(docs, 1):
