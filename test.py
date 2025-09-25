@@ -104,3 +104,5 @@ if uploaded_files:
                     st.markdown(
                         f"**Đoạn {i}** (File: `{source}`, Trang {page_num}):\n\n{doc.page_content}"
                     )
+else:
+    st.info("Vui lòng tải lên ít nhất một file PDF để bắt đầu.")
