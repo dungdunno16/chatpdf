@@ -11,8 +11,9 @@ import tempfile
 from dotenv import load_dotenv
 
 
-load_dotenv()
-api_key = os.getenv("GOOGLE_API_KEY")
+# load_dotenv()
+# api_key = os.getenv("GOOGLE_API_KEY")
+api_key = st.secrets["GOOGLE_API_KEY"]
 
 st.title("Hỏi đáp từ tài liệu PDF với Google Gemini")
 
